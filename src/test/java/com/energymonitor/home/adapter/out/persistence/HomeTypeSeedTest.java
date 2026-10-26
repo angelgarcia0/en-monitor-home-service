@@ -3,6 +3,7 @@ package com.energymonitor.home.adapter.out.persistence;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
+import com.energymonitor.home.infrastructure.JwtKeyedTest;
 import jakarta.persistence.EntityManager;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -19,7 +20,7 @@ import org.springframework.boot.test.context.SpringBootTest;
  * the data of the database it runs against.
  */
 @SpringBootTest
-class HomeTypeSeedTest {
+class HomeTypeSeedTest extends JwtKeyedTest {
 
     @Autowired
     private EntityManager entityManager;

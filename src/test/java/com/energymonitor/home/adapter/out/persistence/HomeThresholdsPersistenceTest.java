@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.energymonitor.home.domain.model.HomeThresholds;
+import com.energymonitor.home.infrastructure.JwtKeyedTest;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @SpringBootTest
 @Transactional
-class HomeThresholdsPersistenceTest {
+class HomeThresholdsPersistenceTest extends JwtKeyedTest {
 
     @Autowired
     private EntityManager entityManager;

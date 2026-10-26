@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.energymonitor.home.application.exception.HomeAccessCodeCollisionException;
 import com.energymonitor.home.domain.model.Home;
+import com.energymonitor.home.infrastructure.JwtKeyedTest;
 import jakarta.persistence.EntityManager;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -21,7 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @SpringBootTest
 @Transactional
-class HomePersistenceTest {
+class HomePersistenceTest extends JwtKeyedTest {
 
     @Autowired
     private EntityManager entityManager;

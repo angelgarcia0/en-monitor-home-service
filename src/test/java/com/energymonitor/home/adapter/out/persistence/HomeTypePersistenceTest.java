@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.energymonitor.home.domain.model.HomeType;
+import com.energymonitor.home.infrastructure.JwtKeyedTest;
 import jakarta.persistence.EntityManager;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -19,7 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @SpringBootTest
 @Transactional
-class HomeTypePersistenceTest {
+class HomeTypePersistenceTest extends JwtKeyedTest {
 
     @Autowired
     private EntityManager entityManager;
