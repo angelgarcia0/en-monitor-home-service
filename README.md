@@ -23,6 +23,20 @@ cp src/main/resources/application-local.yaml.example src/main/resources/applicat
 ./mvnw spring-boot:run          # http://localhost:8086/actuator/health
 ```
 
+## Behind the gateway
+
+Web and mobile requests arrive through the API gateway (`/api/v1/homes/**`,
+`/api/v1/home-types/**`), which validates the token first; this service validates it again.
+From loopback or a Docker network (`172.16.0.0/12`) the container takes the caller's address and
+scheme from `X-Forwarded-For` / `X-Forwarded-Proto` (`server.forward-headers-strategy=native`,
+`server.tomcat.remoteip.internal-proxies`); any other private network is not trusted, so a machine
+of the LAN cannot pass as `127.0.0.1`.
+
+The internal API checks that address: a request relayed from outside counts as the outside caller
+and is refused, even if it forwards `127.0.0.1`. The gateway never forwards `/internal/**`; the
+other services call this service directly over the Docker network. `BehindGatewayTest` checks it
+on a running server.
+
 ## Tests
 
 ```bash
