@@ -34,12 +34,15 @@ security:
     issuer: https://energy-monitor-backend
     public-key-path: ${SECURITY_JWT_PUBLIC_KEY_PATH:}
 
-# Calls from this service to the others: the names of the users of a home come from the security
-# service (no answer within the timeouts lists the members without names). The reverse proxy
-# never forwards /internal/**.
+# Calls between this service and the others, both ways: the names of the users of a home come from
+# the security service (no answer within the timeouts lists the members without names), and the
+# other services ask /internal/homes/** and /internal/accounts/**. Inbound calls must come from
+# allowed-networks and carry the token; the reverse proxy never forwards /internal/**.
 internal-api:
-  # Same value in every service. Generate with: openssl rand -hex 32
+  # Same value in every service. Empty refuses every inbound internal call.
+  # Generate with: openssl rand -hex 32
   token: ${INTERNAL_API_TOKEN:}
+  allowed-networks: ${INTERNAL_API_ALLOWED_NETWORKS:127.0.0.1/32,::1/128,172.16.0.0/12}
   security-service-url: ${SECURITY_SERVICE_URL:http://localhost:8082}
   connect-timeout: PT1S
   read-timeout: PT2S
