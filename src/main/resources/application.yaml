@@ -22,6 +22,18 @@ spring:
     # service applies its own changelogs.
     change-log: classpath:db/changelog/db.changelog-master.xml
 
+  # Message broker (RabbitMQ, from infra): the home events this service announces, and the account
+  # events it consumes. Each consumer declares and binds its own queue.
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:energy-monitor}
+    password: ${RABBITMQ_PASSWORD:}
+    # A home message is marked as published only after the broker confirms it and a queue took it
+    # (correlated: the return of an unrouted message is known before the confirmation completes).
+    publisher-confirm-type: correlated
+    publisher-returns: true
+
 server:
   # 8080 is the API gateway, 8082 the security service, 8083 energy-monitor-backend, 8084 the
   # device service and 8085 the measurement service when all run on the same machine.
@@ -46,6 +58,27 @@ internal-api:
   security-service-url: ${SECURITY_SERVICE_URL:http://localhost:8082}
   connect-timeout: PT1S
   read-timeout: PT2S
+
+messaging:
+  # Topic exchange the security service publishes to (account.deleted), and the dead-letter
+  # exchange of the queues this service consumes.
+  security-exchange: energy-monitor.security
+  dead-letter-exchange: home-service.dlx
+  # Both off until energy-monitor-backend stops serving the homes: it consumes account.deleted
+  # from a queue of its own and relays the home_outbox table this service shares with it, so
+  # turning these on earlier would handle every message twice. infra switches them on together
+  # with the gateway route.
+  account-deleted:
+    enabled: ${ACCOUNT_DELETED_CONSUMER_ENABLED:false}
+  # Topic exchange of the home events this service announces (home.deleted), written to the
+  # home_outbox table with the change and relayed every second, up to 50 messages, each confirmed
+  # by the broker within 5 s.
+  home:
+    exchange: energy-monitor.home
+    relay-enabled: ${HOME_OUTBOX_RELAY_ENABLED:false}
+    poll-interval: PT1S
+    batch-size: 50
+    confirm-timeout: PT5S
 
 # Consumption limits a home starts with, in kWh.
 home:
