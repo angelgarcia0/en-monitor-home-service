@@ -51,7 +51,7 @@ class HomeApiSecurityTest extends JwtKeyedTest {
 
     @Test
     void anythingOutsideTheApiIsDenied() throws Exception {
-        mvc.perform(get("/internal/homes/hom0000001/access")
+        mvc.perform(get("/internal/devices/dev0000001")
                         .header(HttpHeaders.AUTHORIZATION, bearer("use0000001")))
                 .andExpect(status().isForbidden());
     }
