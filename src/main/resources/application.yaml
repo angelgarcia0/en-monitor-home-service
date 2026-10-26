@@ -27,6 +27,29 @@ server:
   # device service and 8085 the measurement service when all run on the same machine.
   port: ${SERVER_PORT:8086}
 
+security:
+  jwt:
+    # The access tokens are issued by the security service; this service only validates them, with
+    # the service's public key and its iss claim (the value the monolith used, kept unchanged).
+    issuer: https://energy-monitor-backend
+    public-key-path: ${SECURITY_JWT_PUBLIC_KEY_PATH:}
+
+# Calls from this service to the others: the names of the users of a home come from the security
+# service (no answer within the timeouts lists the members without names). The reverse proxy
+# never forwards /internal/**.
+internal-api:
+  # Same value in every service. Generate with: openssl rand -hex 32
+  token: ${INTERNAL_API_TOKEN:}
+  security-service-url: ${SECURITY_SERVICE_URL:http://localhost:8082}
+  connect-timeout: PT1S
+  read-timeout: PT2S
+
+# Consumption limits a home starts with, in kWh.
+home:
+  defaults:
+    daily-limit: 6.0
+    monthly-limit: 180.0
+
 management:
   endpoints:
     web:
