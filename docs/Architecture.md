@@ -95,11 +95,11 @@ here.
 - **Consumer**: `home-service.home.account-deleted`, durable, with a dead-letter queue on
   `home-service.dlx`. It removes the account's memberships and the homes it was the only owner
   of; a home with other members passes to the oldest one. A second delivery changes nothing.
-- **While energy-monitor-backend still serves the homes**, both stay off
-  (`HOME_OUTBOX_RELAY_ENABLED`, `ACCOUNT_DELETED_CONSUMER_ENABLED`): the backend relays the shared
-  `home_outbox` table, rows written here included, and consumes `account.deleted` from a queue of
-  its own. The consumer's queue is not even declared until then, so it does not pile up messages
-  the backend already handled.
+- **Both are on by default** (`HOME_OUTBOX_RELAY_ENABLED`, `ACCOUNT_DELETED_CONSUMER_ENABLED`):
+  energy-monitor-backend no longer has a home module. They were off while it did, since it relayed
+  the shared `home_outbox` table and consumed `account.deleted` from a queue of its own; setting
+  them to `false` goes back to that. Off, the consumer's queue is not even declared, so it does not
+  pile up messages the backend handles.
 
 ## Database
 
@@ -132,14 +132,14 @@ The platform decisions (shared schema, event transport, gateway) are the ADRs of
 | 1 | Project structure | Done |
 | 2 | Domain, use cases, persistence and changesets, endpoints with JWT validation, security service client | Done |
 | 4 | Internal API for the other services | Done |
-| 5 | RabbitMQ, transactional outbox (`home.deleted`) and `account.deleted` consumer, off by default | Done |
+| 5 | RabbitMQ, transactional outbox (`home.deleted`) and `account.deleted` consumer, off until phase 12 | Done |
 | 6 | Forwarded headers behind the gateway | Done |
 | 7 | Image, CI/CD and this document | Done |
-| 8 | energy-monitor-backend reads homes through a client of this service | Pending |
-| 9 | Gateway routes `/api/v1/homes/**` and `/api/v1/home-types/**` here | Pending |
-| 10 | Security, device and measurement services call this service | Pending |
-| 11 | infra: `home` container, relay and consumer on | Pending |
-| 12 | `home` module removed from energy-monitor-backend | Pending |
+| 8 | energy-monitor-backend reads homes through a client of this service | Done |
+| 9 | Gateway routes `/api/v1/homes/**` and `/api/v1/home-types/**` here | Done |
+| 10 | Security, device and measurement services call this service | Done |
+| 11 | infra: `home` container, relay and consumer still off | Done |
+| 12 | `home` module removed from energy-monitor-backend; relay and consumer on | Done |
 
 Phase 3 of the plan, the security service client, was done inside phase 2.
 

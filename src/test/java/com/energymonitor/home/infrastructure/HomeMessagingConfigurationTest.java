@@ -19,13 +19,13 @@ class HomeMessagingConfigurationTest {
                     "messaging.dead-letter-exchange=home-service.dlx");
 
     @Test
-    @DisplayName("not declared while energy-monitor-backend still consumes account.deleted")
+    @DisplayName("not declared while switched off (going back to a backend that consumes it)")
     void offByDefault() {
         context.run(started -> assertThat(started).doesNotHaveBean(Declarables.class));
     }
 
     @Test
-    @DisplayName("declared, bound to account.deleted and dead-lettered once switched on")
+    @DisplayName("declared, bound to account.deleted and dead-lettered when switched on")
     void declaredWhenEnabled() {
         context.withPropertyValues("messaging.account-deleted.enabled=true").run(started -> {
             Declarables declarables = started.getBean(Declarables.class);
