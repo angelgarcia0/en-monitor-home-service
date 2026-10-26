@@ -43,4 +43,26 @@ on a running server.
 SPRING_DATASOURCE_PASSWORD=... ./mvnw test
 ```
 
-The tests run under the `test` profile against the MySQL of `infra`.
+The tests run under the `test` profile against the MySQL of `infra`. The RabbitMQ publisher test
+also uses the RabbitMQ of `infra` (`RABBITMQ_USERNAME`, `RABBITMQ_PASSWORD`) and is skipped when no
+broker answers.
+
+## Docker and CI/CD
+
+```bash
+docker build -t energy-monitor-home .
+```
+
+Multi-stage build (Maven on JDK 21, then JRE 21), running as uid 10001. The infra repository
+builds it as `home`: no published port, `public.pem` only, health on `/actuator/health`. The
+gateway and the other services reach it as `home:8086`.
+
+`.github/workflows/ci-cd.yml`:
+
+- on every pull request and push to `dev` and `main`: `./mvnw test` against an empty MySQL 8.4
+  service of the runner (Liquibase creates the home tables; no RabbitMQ needed), and
+  `docker build`;
+- after a push to `main`, and the approval of the `production` environment: `infra/deploy/deploy.sh
+  home` over SSH, which rebuilds only this container and waits for every service to be healthy,
+  then a smoke test through the gateway. The environment needs the same secrets as the other
+  repositories: `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_SSH_KEY` and `DEPLOY_KNOWN_HOSTS`.
