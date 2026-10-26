@@ -8,9 +8,9 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
  * Settings of the home messages this service publishes ({@code messaging.home.*}).
  *
  * @param exchange       the topic exchange every home message goes to
- * @param relayEnabled   whether the outbox relay runs. Off until energy-monitor-backend stops
- *                       relaying the shared table, and in the test profile, so a test never
- *                       publishes to a broker another process is consuming
+ * @param relayEnabled   whether the outbox relay runs. Off in the test profile, so a test never
+ *                       publishes to a broker another process is consuming, and to go back to a
+ *                       backend that still relays the table
  * @param pollInterval   how often the relay looks for pending messages
  * @param batchSize      the most messages one run publishes
  * @param confirmTimeout how long to wait for the broker to confirm a message

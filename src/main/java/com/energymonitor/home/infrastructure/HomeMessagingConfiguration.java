@@ -18,9 +18,9 @@ import org.springframework.context.annotation.Configuration;
  * <p>Durable, and dead-lettered to {@value #ACCOUNT_DELETED_QUEUE}{@code .dlq} once a message
  * has failed every retry.
  *
- * <p>Only declared with {@code messaging.account-deleted.enabled}: while energy-monitor-backend
- * still owns the homes it consumes {@code account.deleted} from a queue of its own, and a queue
- * declared here would only pile up the messages the backend already handled.
+ * <p>Only declared with {@code messaging.account-deleted.enabled}, on by default. Off it serves to
+ * go back to an energy-monitor-backend that still consumes {@code account.deleted} for the homes
+ * from a queue of its own: a queue declared here would only pile up the messages it handled.
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(name = "messaging.account-deleted.enabled", havingValue = "true")

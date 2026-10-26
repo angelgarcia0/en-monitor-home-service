@@ -16,11 +16,10 @@ import org.springframework.data.domain.PageRequest;
  * next run, which is what makes delivery at-least-once. Consumers drop duplicates by message id,
  * and unlinking the devices of a home twice changes nothing.
  *
- * <p>Runs on a single instance. The {@code home_outbox} table is shared with energy-monitor-backend,
- * whose relay publishes it while the backend still owns the homes, so this one stays off
- * ({@code messaging.home.relay-enabled}) until the backend's is switched off. Two relays would
- * publish the same rows twice, which consumers tolerate, but they would also break the ordering
- * above.
+ * <p>Runs on a single instance, the only relay of {@code home_outbox} since energy-monitor-backend
+ * dropped its home module. {@code messaging.home.relay-enabled} turns it off only to go back to a
+ * backend that still relays the table: two relays would publish the same rows twice, which
+ * consumers tolerate, but they would also break the ordering above.
  */
 public class HomeOutboxRelay {
 
