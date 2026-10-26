@@ -6,7 +6,27 @@ home type catalogue, answers the other services who may act on a home and announ
 over RabbitMQ. Spring Boot 4, Java 21, hexagonal architecture.
 
 It is being extracted from the `home` module of `energy-monitor-backend`, following the same steps
-as the security, device and measurement services.
+as the security, device and measurement services. The design, the decisions and the migration
+status are in [`docs/Architecture.md`](docs/Architecture.md).
+
+## What it serves
+
+| Path | Who calls it | What it does |
+|---|---|---|
+| `POST /api/v1/homes` | web and mobile, through the gateway | Creates a home; the caller is its owner |
+| `GET /api/v1/homes` | idem | Homes of the caller, with its role and whether each is a favourite |
+| `POST /api/v1/homes/join` | idem | Joins a home with its access code |
+| `GET /api/v1/homes/{homeId}/members` | idem | Members with their names and roles (any member) |
+| `PUT /api/v1/homes/{homeId}/favorite` | idem | Marks or unmarks the home as favourite |
+| `DELETE /api/v1/homes/{homeId}/members/me` | idem | Leaves the home (not its last owner) |
+| `DELETE /api/v1/homes/{homeId}/members/{userId}` | idem | Removes a member (owner) |
+| `PUT /api/v1/homes/{homeId}/owner` | idem | Hands the home over to a member (owner) |
+| `DELETE /api/v1/homes/{homeId}` | idem | Deletes the home and announces `home.deleted` (owner) |
+| `GET`, `PUT /api/v1/homes/{homeId}/thresholds`, `POST .../defaults` | idem | Consumption limits of the home (changing them: owner) |
+| `GET /api/v1/home-types`, `/{idHomeType}` | idem | Home type catalogue |
+| `/internal/homes/**`, `/internal/accounts/**` | the other services, never the gateway | See `docs/Architecture.md` |
+
+Swagger UI: `http://localhost:8086/swagger-ui.html` (the internal API is hidden there).
 
 ## Requirements
 
