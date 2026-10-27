@@ -61,9 +61,8 @@ public class TransferHomeOwnershipService implements TransferHomeOwnership {
         UserHome owner = userHomePort.lockActive(command.userId(), homeId)
                 .orElseThrow(() -> new HomeNotFoundException(
                         "no active membership for user " + command.userId() + " in home " + homeId));
-        if (homePort.findActive(homeId).isEmpty()) {
-            throw new HomeNotFoundException("home " + homeId + " does not exist");
-        }
+        var home = homePort.findActive(homeId)
+                .orElseThrow(() -> new HomeNotFoundException("home " + homeId + " does not exist"));
         if (!owner.isOwner()) {
             throw new HomeAccessDeniedException("only the owner can transfer home " + homeId);
         }
@@ -80,6 +79,6 @@ public class TransferHomeOwnershipService implements TransferHomeOwnership {
         userHomePort.save(owner.withRole(Role.MEMBER));
         userHomePort.save(newOwner.withRole(Role.OWNER));
         events.publish(new HomeOwnershipTransferred(homeId, owner.userId(), newOwner.userId(),
-                clock.instant()));
+                clock.instant(), home.name(), HomeMembers.ids(userHomePort, homeId)));
     }
 }

@@ -57,7 +57,8 @@ public class RemoveDeletedAccountService implements RemoveDeletedAccount {
                 userHomePort.save(heir.get().withRole(Role.OWNER));
                 userHomePort.remove(userId, homeId);
                 events.publish(new HomeOwnershipTransferred(homeId, userId, heir.get().userId(),
-                        clock.instant()));
+                        clock.instant(), HomeMembers.name(homePort, homeId),
+                        HomeMembers.ids(userHomePort, homeId)));
             } else {
                 // Same end as an owner deleting it: thresholds go and its devices are unlinked.
                 HomeRemoval.remove(homeId, userId, homePort, userHomePort, thresholdsPort, events, clock);

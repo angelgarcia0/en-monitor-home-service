@@ -141,6 +141,36 @@ public final class HomeUseCaseFixtures {
 
         public final List<com.energymonitor.home.api.HomeDeleted> deleted = new ArrayList<>();
         public final List<com.energymonitor.home.api.HomeOwnershipTransferred> transferred = new ArrayList<>();
+        public final List<com.energymonitor.home.api.HomeCreated> created = new ArrayList<>();
+        public final List<com.energymonitor.home.api.MemberJoined> joined = new ArrayList<>();
+        public final List<com.energymonitor.home.api.MemberLeft> left = new ArrayList<>();
+        public final List<com.energymonitor.home.api.MemberRemoved> removed = new ArrayList<>();
+        public final List<com.energymonitor.home.api.ThresholdsUpdated> thresholdsUpdated = new ArrayList<>();
+
+        @Override
+        public void publish(com.energymonitor.home.api.HomeCreated event) {
+            created.add(event);
+        }
+
+        @Override
+        public void publish(com.energymonitor.home.api.MemberJoined event) {
+            joined.add(event);
+        }
+
+        @Override
+        public void publish(com.energymonitor.home.api.MemberLeft event) {
+            left.add(event);
+        }
+
+        @Override
+        public void publish(com.energymonitor.home.api.MemberRemoved event) {
+            removed.add(event);
+        }
+
+        @Override
+        public void publish(com.energymonitor.home.api.ThresholdsUpdated event) {
+            thresholdsUpdated.add(event);
+        }
 
         @Override
         public void publish(com.energymonitor.home.api.HomeDeleted event) {

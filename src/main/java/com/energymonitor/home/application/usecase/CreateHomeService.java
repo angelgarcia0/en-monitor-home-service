@@ -3,11 +3,13 @@ package com.energymonitor.home.application.usecase;
 import java.time.Clock;
 import java.time.Instant;
 
+import com.energymonitor.home.api.HomeCreated;
 import com.energymonitor.home.application.command.CreateHomeCommand;
 import com.energymonitor.home.application.exception.HomeConflictException;
 import com.energymonitor.home.application.exception.HomeTypeNotFoundException;
 import com.energymonitor.home.application.port.in.CreateHome;
 import com.energymonitor.home.application.port.out.AccessCodeGeneratorPort;
+import com.energymonitor.home.application.port.out.HomeEventPort;
 import com.energymonitor.home.application.port.out.HomePersistencePort;
 import com.energymonitor.home.application.port.out.HomeThresholdsPersistencePort;
 import com.energymonitor.home.application.port.out.HomeTypePersistencePort;
@@ -29,9 +31,9 @@ import com.energymonitor.home.domain.model.UserHome;
  *   <li>{@code home_thresholds} (with {@code useSystemDefault = true})</li>
  *   <li>{@code user_home} (OWNER membership)</li>
  * </ol>
- * If any write fails, the entire operation must roll back. The actual transaction
- * management is configured in {@code infrastructure/} (Etapa E) via a transactional
- * decorator. This service contains no Spring annotations.
+ * and announces {@link HomeCreated}. If any write fails, the entire operation must roll back:
+ * {@code TransactionalCreateHome} runs it in one transaction. This service contains no Spring
+ * annotations.
  */
 public class CreateHomeService implements CreateHome {
 
@@ -44,9 +46,14 @@ public class CreateHomeService implements CreateHome {
     private final IdentifierGeneratorPort identifiers;
     private final AccessCodeGeneratorPort accessCodes;
     private final SystemDefaultsPort defaults;
+    private final HomeEventPort events;
     private final Clock clock;
 
-    public CreateHomeService(HomePersistencePort homePort,HomeTypePersistencePort homeTypePort,HomeThresholdsPersistencePort thresholdsPort,UserHomePersistencePort userHomePort,IdentifierGeneratorPort identifiers,AccessCodeGeneratorPort accessCodes,SystemDefaultsPort defaults,Clock clock) {
+    public CreateHomeService(HomePersistencePort homePort, HomeTypePersistencePort homeTypePort,
+                             HomeThresholdsPersistencePort thresholdsPort,
+                             UserHomePersistencePort userHomePort, IdentifierGeneratorPort identifiers,
+                             AccessCodeGeneratorPort accessCodes, SystemDefaultsPort defaults,
+                             HomeEventPort events, Clock clock) {
         this.homePort = homePort;
         this.homeTypePort = homeTypePort;
         this.thresholdsPort = thresholdsPort;
@@ -54,6 +61,7 @@ public class CreateHomeService implements CreateHome {
         this.identifiers = identifiers;
         this.accessCodes = accessCodes;
         this.defaults = defaults;
+        this.events = events;
         this.clock = clock;
     }
 
@@ -83,6 +91,8 @@ public class CreateHomeService implements CreateHome {
         // Create OWNER membership
         UserHome membership = UserHome.owner(command.userId(), idHome);
         userHomePort.save(membership);
+
+        events.publish(new HomeCreated(idHome, home.name(), command.userId(), now));
 
         return HomeResult.from(home);
     }

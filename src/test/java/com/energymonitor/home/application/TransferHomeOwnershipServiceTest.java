@@ -3,7 +3,6 @@ package com.energymonitor.home.application;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.energymonitor.home.api.HomeOwnershipTransferred;
 import com.energymonitor.home.application.command.TransferHomeOwnershipCommand;
 import com.energymonitor.home.application.exception.HomeAccessDeniedException;
 import com.energymonitor.home.application.exception.HomeConflictException;
@@ -51,8 +50,14 @@ class TransferHomeOwnershipServiceTest {
                 .returns(true, UserHome::isFavorite);
         assertThat(memberships.findActive(OWNER, HOME)).get().returns(Role.MEMBER, UserHome::role);
         assertThat(memberships.countActiveOwnersByHomeId(HOME)).isEqualTo(1);
-        assertThat(events.transferred).containsExactly(
-                new HomeOwnershipTransferred(HOME, OWNER, MEMBER, HomeUseCaseFixtures.NOW));
+        assertThat(events.transferred).singleElement().satisfies(transferred -> {
+            assertThat(transferred.homeId()).isEqualTo(HOME);
+            assertThat(transferred.previousOwnerId()).isEqualTo(OWNER);
+            assertThat(transferred.newOwnerId()).isEqualTo(MEMBER);
+            assertThat(transferred.occurredAt()).isEqualTo(HomeUseCaseFixtures.NOW);
+            assertThat(transferred.homeName()).isEqualTo("Casa");
+            assertThat(transferred.memberIds()).containsExactlyInAnyOrder(OWNER, MEMBER);
+        });
     }
 
     @Test

@@ -6,6 +6,7 @@ import com.energymonitor.home.application.port.out.HomePersistencePort;
 import com.energymonitor.home.application.port.out.HomeThresholdsPersistencePort;
 import com.energymonitor.home.application.port.out.UserHomePersistencePort;
 import java.time.Clock;
+import java.util.List;
 
 /**
  * The steps that remove a home, shared by the two ways a home ends: an owner deletes it, or the
@@ -20,10 +21,12 @@ final class HomeRemoval {
     static void remove(String homeId, String deletedBy, HomePersistencePort homePort,
                        UserHomePersistencePort userHomePort, HomeThresholdsPersistencePort thresholdsPort,
                        HomeEventPort events, Clock clock) {
-        userHomePort.listActiveByHomeId(homeId)
-                .forEach(member -> userHomePort.remove(member.userId(), homeId));
+        // Read before anything goes: the message names the home and the people who were in it.
+        String homeName = HomeMembers.name(homePort, homeId);
+        List<String> memberIds = HomeMembers.ids(userHomePort, homeId);
+        memberIds.forEach(memberId -> userHomePort.remove(memberId, homeId));
         thresholdsPort.removeByHomeId(homeId);
         homePort.remove(homeId);
-        events.publish(new HomeDeleted(homeId, deletedBy, clock.instant()));
+        events.publish(new HomeDeleted(homeId, deletedBy, clock.instant(), homeName, memberIds));
     }
 }

@@ -13,6 +13,7 @@ import com.energymonitor.home.domain.model.HomeThresholds;
 import com.energymonitor.home.domain.model.UserHome;
 import java.time.Clock;
 import java.time.ZoneOffset;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -47,7 +48,8 @@ class DeleteHomeServiceTest {
         assertThat(memberships.listActiveByHomeId("hom0000001")).isEmpty();
         assertThat(thresholds.findActiveByHomeId("hom0000001")).isEmpty();
         assertThat(events.deleted).containsExactly(
-                new HomeDeleted("hom0000001", "use0000001", HomeUseCaseFixtures.NOW));
+                new HomeDeleted("hom0000001", "use0000001", HomeUseCaseFixtures.NOW, "Casa",
+                        List.of("use0000001", "use0000002")));
     }
 
     @Test

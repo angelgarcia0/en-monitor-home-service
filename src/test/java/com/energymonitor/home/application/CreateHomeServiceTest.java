@@ -5,12 +5,14 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.energymonitor.home.api.HomeCreated;
 import com.energymonitor.home.application.command.CreateHomeCommand;
 import com.energymonitor.home.application.exception.HomeConflictException;
 import com.energymonitor.home.application.exception.HomeTypeNotFoundException;
 import com.energymonitor.home.application.usecase.CreateHomeService;
 import com.energymonitor.home.domain.model.HomeType;
 import com.energymonitor.home.domain.model.Role;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -23,6 +25,7 @@ class CreateHomeServiceTest {
     private HomeUseCaseFixtures.FakeIdentifierGeneratorPort identifiers;
     private HomeUseCaseFixtures.FakeAccessCodeGeneratorPort accessCodes;
     private HomeUseCaseFixtures.FakeSystemDefaultsPort defaults;
+    private HomeUseCaseFixtures.FakeHomeEventPort events;
     private CreateHomeService service;
 
     @BeforeEach
@@ -34,11 +37,20 @@ class CreateHomeServiceTest {
         identifiers = new HomeUseCaseFixtures.FakeIdentifierGeneratorPort();
         accessCodes = new HomeUseCaseFixtures.FakeAccessCodeGeneratorPort();
         defaults = new HomeUseCaseFixtures.FakeSystemDefaultsPort();
+        events = new HomeUseCaseFixtures.FakeHomeEventPort();
 
         homeTypePort.seed(new HomeType("hous000001", "house"));
 
         service = new CreateHomeService(homePort, homeTypePort, thresholdsPort, userHomePort,
-                identifiers, accessCodes, defaults, HomeUseCaseFixtures.clock());
+                identifiers, accessCodes, defaults, events, HomeUseCaseFixtures.clock());
+    }
+
+    @Test
+    void announcesTheNewHomeToItsOwner() {
+        var result = service.create(new CreateHomeCommand("use0000001", "Casa", "hous000001", "Calle 123", null));
+
+        assertEquals(List.of(new HomeCreated(result.idHome(), "Casa",
+                "use0000001", HomeUseCaseFixtures.NOW)), events.created);
     }
 
     @Test
@@ -93,7 +105,7 @@ class CreateHomeServiceTest {
         };
 
         CreateHomeService failingService = new CreateHomeService(failingPort, homeTypePort, thresholdsPort,
-                userHomePort, identifiers, accessCodes, defaults, HomeUseCaseFixtures.clock());
+                userHomePort, identifiers, accessCodes, defaults, events, HomeUseCaseFixtures.clock());
 
         var command = new CreateHomeCommand("use0000001", "Casa", "hous000001", "Calle 123", null);
         assertThrows(RuntimeException.class, () -> failingService.create(command));

@@ -11,9 +11,11 @@ import com.energymonitor.home.application.exception.HomeAccessDeniedException;
 import com.energymonitor.home.application.exception.HomeNotFoundException;
 import com.energymonitor.home.application.port.out.SystemDefaultsPort;
 import com.energymonitor.home.application.usecase.UpdateHomeThresholdsService;
+import com.energymonitor.home.domain.model.Home;
 import com.energymonitor.home.domain.model.HomeThresholds;
 import com.energymonitor.home.domain.model.Role;
 import com.energymonitor.home.domain.model.UserHome;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -33,6 +35,7 @@ class UpdateHomeThresholdsServiceTest {
 
     private HomeUseCaseFixtures.FakeHomeThresholdsPersistencePort thresholdsPort;
     private HomeUseCaseFixtures.FakeUserHomePersistencePort userHomePort;
+    private final HomeUseCaseFixtures.FakeHomeEventPort events = new HomeUseCaseFixtures.FakeHomeEventPort();
     private UpdateHomeThresholdsService service;
 
     @BeforeEach
@@ -44,7 +47,23 @@ class UpdateHomeThresholdsServiceTest {
         userHomePort.save(UserHome.owner("use0000001", "hom0000001"));
         userHomePort.save(UserHome.member("use0000002", "hom0000001"));
 
-        service = new UpdateHomeThresholdsService(thresholdsPort, userHomePort, DEFAULTS);
+        var homePort = new HomeUseCaseFixtures.FakeHomePersistencePort();
+        homePort.seed(Home.create("hom0000001", "Casa", "hous000001", "Calle 1", "AAA11111", null,
+                HomeUseCaseFixtures.NOW));
+        service = new UpdateHomeThresholdsService(thresholdsPort, userHomePort, DEFAULTS, homePort, events,
+                HomeUseCaseFixtures.clock());
+    }
+
+    @Test
+    void announcesTheChangeAndTheResetToEveryMember() {
+        service.update(new UpdateHomeThresholdsCommand("use0000001", "hom0000001", LimitPeriod.DAILY, 15.0));
+        service.resetToDefaults("use0000001", "hom0000001");
+
+        assertEquals(2, events.thresholdsUpdated.size());
+        var updated = events.thresholdsUpdated.getFirst();
+        assertEquals("Casa", updated.homeName());
+        assertEquals("use0000001", updated.updatedBy());
+        assertEquals(Set.of("use0000001", "use0000002"), Set.copyOf(updated.memberIds()));
     }
 
     @Test
