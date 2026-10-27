@@ -5,10 +5,17 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.energymonitor.home.adapter.out.persistence.entity.HomeOutboxEntity;
 import com.energymonitor.home.adapter.out.persistence.repository.HomeOutboxRepository;
+import com.energymonitor.home.api.LimitPeriod;
 import com.energymonitor.home.application.command.DeleteHomeCommand;
+import com.energymonitor.home.application.command.JoinHomeCommand;
+import com.energymonitor.home.application.command.LeaveHomeCommand;
+import com.energymonitor.home.application.command.UpdateHomeThresholdsCommand;
 import com.energymonitor.home.application.exception.HomeAccessDeniedException;
 import com.energymonitor.home.application.port.in.DeleteHome;
+import com.energymonitor.home.application.port.in.JoinHome;
+import com.energymonitor.home.application.port.in.LeaveHome;
 import com.energymonitor.home.application.port.in.RemoveDeletedAccount;
+import com.energymonitor.home.application.port.in.UpdateHomeThresholds;
 import com.energymonitor.home.application.port.out.HomePersistencePort;
 import com.energymonitor.home.application.port.out.HomeThresholdsPersistencePort;
 import com.energymonitor.home.application.port.out.UserHomePersistencePort;
@@ -53,6 +60,12 @@ class HomeOutboxWriterIntegrationTest extends JwtKeyedTest {
     @Autowired
     private HomeThresholdsPersistencePort thresholds;
     @Autowired
+    private JoinHome joinHome;
+    @Autowired
+    private LeaveHome leaveHome;
+    @Autowired
+    private UpdateHomeThresholds updateThresholds;
+    @Autowired
     private HomeOutboxRepository outbox;
     @Autowired
     private ObjectMapper json;
@@ -77,6 +90,8 @@ class HomeOutboxWriterIntegrationTest extends JwtKeyedTest {
         assertThat(payload.get("homeId").asString()).isEqualTo(HOME);
         assertThat(payload.get("deletedBy").asString()).isEqualTo(OWNER);
         assertThat(payload.get("deletedAt").asString()).isNotBlank();
+        assertThat(payload.get("homeName").asString()).isEqualTo("Casa");
+        assertThat(payload.get("memberIds").get(0).asString()).isEqualTo(OWNER);
         assertThat(message.getPublishedAt()).isNull();
         assertThat(message.getDiscardedAt()).as("the test profile never lets it be published").isNotNull();
     }
@@ -99,6 +114,25 @@ class HomeOutboxWriterIntegrationTest extends JwtKeyedTest {
                 .isInstanceOf(HomeAccessDeniedException.class);
 
         assertThat(messagesFor(HOME)).isEmpty();
+    }
+
+    @Test
+    @DisplayName("joining, leaving and changing the thresholds write their messages with the members")
+    void activityWritesItsMessages() {
+        joinHome.join(new JoinHomeCommand(MEMBER, "HOB00001"));
+        updateThresholds.update(new UpdateHomeThresholdsCommand(OWNER, HOME, LimitPeriod.DAILY, 8.0));
+        leaveHome.leave(new LeaveHomeCommand(MEMBER, HOME));
+
+        assertThat(messagesFor(HOME)).extracting(HomeOutboxEntity::getMessageType)
+                .containsExactlyInAnyOrder(HomeMessageTypes.MEMBER_JOINED,
+                        HomeMessageTypes.THRESHOLDS_UPDATED, HomeMessageTypes.MEMBER_LEFT);
+        JsonNode left = json.readTree(messagesFor(HOME).stream()
+                .filter(message -> message.getMessageType().equals(HomeMessageTypes.MEMBER_LEFT))
+                .findFirst().orElseThrow().getPayload());
+        assertThat(left.get("userId").asString()).isEqualTo(MEMBER);
+        assertThat(left.get("homeName").asString()).isEqualTo("Casa");
+        assertThat(left.get("memberIds")).hasSize(1);
+        assertThat(left.get("memberIds").get(0).asString()).isEqualTo(OWNER);
     }
 
     private List<HomeOutboxEntity> messagesFor(String homeId) {
