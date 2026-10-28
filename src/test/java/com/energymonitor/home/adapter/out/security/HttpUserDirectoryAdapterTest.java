@@ -42,7 +42,7 @@ class HttpUserDirectoryAdapterTest {
                         """))
                 .andRespond(withSuccess("""
                         {"profiles":[
-                          {"userId":"use0000001","name":"Ana","lastName":"Rojas","email":"ana@example.com"}
+                          {"userId":"use0000001","name":"Ana","lastName":"Rojas","email":"ana@example.com","profileImage":"data:image/png;base64,AAAA"}
                         ]}
                         """, MediaType.APPLICATION_JSON));
 
@@ -50,7 +50,8 @@ class HttpUserDirectoryAdapterTest {
 
         assertThat(found).containsOnlyKeys("use0000001");
         assertThat(found.get("use0000001"))
-                .isEqualTo(new UserSummary("Ana", "Rojas", "ana@example.com"));
+                .isEqualTo(new UserSummary("Ana", "Rojas", "ana@example.com",
+                        "data:image/png;base64,AAAA"));
         security.verify();
     }
 

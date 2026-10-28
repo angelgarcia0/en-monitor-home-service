@@ -50,7 +50,7 @@ public class HttpUserDirectoryAdapter implements UserDirectoryPort {
             return Optional.ofNullable(body).map(Profiles::profiles).orElse(List.of()).stream()
                     .collect(Collectors.toMap(Profile::userId,
                             profile -> new UserSummary(profile.name(), profile.lastName(),
-                                    profile.email()),
+                                    profile.email(), profile.profileImage()),
                             (first, second) -> first));
         } catch (RestClientException unavailable) {
             LOG.warn("Showing accounts without names: the security service did not answer the"
@@ -65,6 +65,7 @@ public class HttpUserDirectoryAdapter implements UserDirectoryPort {
     record Profiles(List<Profile> profiles) {
     }
 
-    record Profile(String userId, String name, String lastName, String email) {
+    record Profile(String userId, String name, String lastName, String email,
+                   String profileImage) {
     }
 }

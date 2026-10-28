@@ -15,7 +15,15 @@ public interface UserDirectoryPort {
      */
     Map<String, UserSummary> findByIds(Collection<String> userIds);
 
-    /** What the home screens show about a user. */
-    record UserSummary(String name, String lastName, String email) {
+    /**
+     * What the home screens show about a user.
+     *
+     * @param profileImage the avatar the person chose (a data URL), {@code null} when none
+     */
+    record UserSummary(String name, String lastName, String email, String profileImage) {
+
+        public UserSummary(String name, String lastName, String email) {
+            this(name, lastName, email, null);
+        }
     }
 }
