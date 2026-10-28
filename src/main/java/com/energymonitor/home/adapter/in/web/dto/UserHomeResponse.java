@@ -13,6 +13,7 @@ import com.energymonitor.home.domain.model.Role;
  * @param name     first name of the user, {@code null} when not resolved
  * @param lastName last name of the user, {@code null} when not resolved
  * @param email    address of the user, {@code null} when not resolved
+ * @param profileImage avatar of the user (a data URL), {@code null} when there is none
  */
 public record UserHomeResponse(
         String userId,
@@ -21,11 +22,13 @@ public record UserHomeResponse(
         boolean favorite,
         String name,
         String lastName,
-        String email
+        String email,
+        String profileImage
 ) {
 
     public static UserHomeResponse from(UserHomeResult result) {
         return new UserHomeResponse(result.userId(), result.homeId(), result.role(),
-                result.favorite(), result.name(), result.lastName(), result.email());
+                result.favorite(), result.name(), result.lastName(), result.email(),
+                result.profileImage());
     }
 }
