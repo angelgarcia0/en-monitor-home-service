@@ -162,7 +162,7 @@ class HomeControllerTest {
     @Test
     void listMembersReturns200() throws Exception {
         when(listMembers.list(any(ListMembersQuery.class)))
-                .thenReturn(List.of(new UserHomeResult("use0000002", HOME_ID, Role.MEMBER, false, "Grace", "Hopper", "grace@example.com")));
+                .thenReturn(List.of(new UserHomeResult("use0000002", HOME_ID, Role.MEMBER, false, "Grace", "Hopper", "grace@example.com", "data:image/png;base64,AAAA")));
 
         mockMvc.perform(get("/api/v1/homes/" + HOME_ID + "/members")
                         .with(asUser(USER_ID)))
@@ -171,7 +171,8 @@ class HomeControllerTest {
                 .andExpect(jsonPath("$[0].role").value("MEMBER"))
                 .andExpect(jsonPath("$[0].name").value("Grace"))
                 .andExpect(jsonPath("$[0].lastName").value("Hopper"))
-                .andExpect(jsonPath("$[0].email").value("grace@example.com"));
+                .andExpect(jsonPath("$[0].email").value("grace@example.com"))
+                .andExpect(jsonPath("$[0].profileImage").value("data:image/png;base64,AAAA"));
     }
 
     @Test
